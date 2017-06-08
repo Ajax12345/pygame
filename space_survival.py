@@ -2,10 +2,36 @@ import pygame
 import random
 import time
 import sqlite3
-#-------------------------Future upgrades-----------------------------
-#Laser projectiles fired from the starfighters
-#username login and player registration with sqlite3 database support
-#---------------------------------------------------------------------
+
+class Bullets(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([10, 10]) #perhaps want to change this
+        self.image.fill((0, 255, 0))
+
+        #self.image.set_colorkey((255, 255, 255))
+        #self.image = pygame.image.load("/Users/davidpetullo/Desktop/laser.png")
+
+        self.rect = self.image.get_rect()
+
+
+    def update(self):
+        self.rect.y -= 3
+
+
+
+class Ship(pygame.sprite.Sprite):
+    def __init__(self, img):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface([60, 60])
+        self.image.fill((0, 255, 0))
+
+        self.image = img
+        self.rect = self.image.get_rect()
+
+
+
+
 
 class Asteroid(pygame.sprite.Sprite):
     def __init__(self):
@@ -20,6 +46,8 @@ class Asteroid(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         self.reverse = 1
+
+        self.health = 80
 
 
 
@@ -67,6 +95,9 @@ class Games1:
         self.height = 800
         self.width = 600
         self.move1 = 0
+        pygame.mixer.init(44100, -16, 2, 2048)
+        self.impact = pygame.mixer.Sound("/Users/davidpetullo/Downloads/Explosion+3.wav")
+        self.blaster = pygame.mixer.Sound("/Users/davidpetullo/Downloads/soundsblaster/probedroidgun01.wav")
         self.img1 = pygame.image.load("/Users/davidpetullo/Desktop/shuttle.png")
         self.asteroid = pygame.image.load("/Users/davidpetullo/Desktop/Asteroididadactyl.png")
 
@@ -78,35 +109,30 @@ class Games1:
         self.speed_down = self.height
         self.speed_across1 = 0
         self.speed_across2 = self.width
-        #The Asteroids: -----------------------------
-
-        self.first_asteroid = Asteroid()
-        self.second_asteroid = Asteroid()
-        self.third_asteroid = Asteroid()
-        self.fourth_asteroid = Asteroid()
-
-        self.second_asteroid.rect.x = 400
-        self.second_asteroid.rect.y = 800
-
-        self.first_asteroid.rect.x = 200
-        self.first_asteroid.rect.y = 300
-
-        self.third_asteroid.rect.x = 300
-        self.third_asteroid.rect.y = 0
-
-        self.fourth_asteroid.rect.x = 300
-
-
-
-        self.fourth_asteroid.rect.y = self.width
-
-        #sprite list:
+        self.generic_astroids = pygame.sprite.Group()
         self.asteroids = pygame.sprite.Group()
 
-        self.asteroids.add(self.first_asteroid)
-        self.asteroids.add(self.second_asteroid)
-        self.asteroids.add(self.third_asteroid)
-        self.asteroids.add(self.fourth_asteroid)
+
+        for i in range(30):
+            self.the_asteroid = Asteroid()
+            self.the_asteroid.rect.x = random.randint(1, 600)
+            self.the_asteroid.rect.y = random.randint(1, 800)
+            self.asteroids.add(self.the_asteroid)
+            self.generic_astroids.add(self.the_asteroid)
+
+        #The Asteroids: -----------------------------
+        #--------------The Asteroids-------------------------
+
+        #-----------------------------------------
+        self.bullet_list = pygame.sprite.Group() #this is important
+
+        self.starship_list = pygame.sprite.Group()
+
+        #self.ship = Ship(self.img1)
+
+        #self.starship_list.add(self.ship)
+        #self.asteroids.add(self.ship)
+
 
         self.clock = pygame.time.Clock()
 
@@ -135,27 +161,6 @@ class Games1:
     def update_screen(self):
         #pygame.display.update()
         pygame.display.flip()
-
-    def checkcollision(self):
-
-        if abs(self.first_asteroid.rect.y-self.height) < 100 and abs(self.first_asteroid.rect.x - self.width) < 100:
-
-            self.hit_counter += 1
-
-
-        #if abs(self.second_asteroid.rect.y -self.width) < 100 and abs(self.second_asteroid.rect.x - self.height) < 100:
-        if abs(self.second_asteroid.rect.y -self.height) < 100  and abs(self.second_asteroid.rect.x - self.width) < 100:
-            self.hit_counter += 1
-
-
-        if abs(self.third_asteroid.rect.y - self.width) < 100 and abs(self.third_asteroid.rect.x - self.height) < 100: #one on the top
-
-            self.hit_counter += 1
-
-
-        if abs(self.fourth_asteroid.rect.y - self.height) < 100 and abs(self.fourth_asteroid.rect.x -self.width) < 100:
-
-            self.hit_counter += 1
 
 
     def counterdisplay(self):
@@ -189,6 +194,7 @@ class Games1:
 
             if click[0] == 1:
                 self.img1 = pygame.image.load("/Users/davidpetullo/Desktop/falchion.png")
+                #self.ship = Ship(self.img1)
                 self.speed_const = 20
                 self.generic_health = 250
                 self.player()
@@ -206,6 +212,7 @@ class Games1:
             if click[0] == 1:
                 self.img1 = pygame.image.load("/Users/davidpetullo/Desktop/eagle.png")
                 self.speed_const = 3
+                #self.ship = Ship(self.img1)
                 self.generic_health = 50
                 self.player()
 
@@ -228,6 +235,10 @@ class Games1:
             self.gameDisplay.blit(text, (300, 300))
             self.update_screen()
 
+    def shoot(self):
+        bullet = Bullets(self.height, self.width)
+        self.asteroids.add(bullet)
+        self.bullets.add(bullet)
 
 
     def menu(self):
@@ -259,12 +270,7 @@ class Games1:
             text = font.render("eagle", True, (0, 0, 0))
             self.gameDisplay.blit(text, (100, 600))
 
-            '''
-            self.button3("hunter", 100, 600, 50, 30)
-            new_font = pygame.font.SysFont(None, 1)
-            text = font.render("hunter", True, (0, 0, 0))
-            self.gameDisplay.blit(text, (100, 600))
-            '''
+
 
             self.update_screen()
 
@@ -282,7 +288,10 @@ class Games1:
         pygame.display.set_caption("Asteroid belt")
 
 
+        self.ship = Ship(self.img1)
 
+        self.starship_list.add(self.ship)
+        self.asteroids.add(self.ship)
 
         #while self.should_continue:
         while 800-self.hit_counter-100 > 0:
@@ -304,9 +313,18 @@ class Games1:
                         #self.y = 10
                         self.y = self.speed_const
 
-                    else:
+                    elif event.key == pygame.K_UP:
                         #self.y  = -10
                         self.y = -1*self.speed_const
+
+                    elif event.key == pygame.K_SPACE:
+                        pygame.mixer.Sound.play(self.blaster)
+                        self.bullet = Bullets()
+                        self.bullet.rect.x = self.height+100
+                        self.bullet.rect.y = self.width + 100
+
+                        self.asteroids.add(self.bullet)
+                        self.bullet_list.add(self.bullet)
 
 
                 if event.type == pygame.KEYUP:
@@ -320,25 +338,51 @@ class Games1:
             self.height += self.x
 
             self.width += self.y
+
+            self.ship.rect.x = self.height
+            self.ship.rect.y = self.width
             #self.random_direction = random.choice(self.possible_directions)
             #print self.random_direction
 
-            self.first_asteroid.backward(2)
+            for i, a in enumerate(self.generic_astroids):
+                if i%2 == 0:
+                    a.backward(4)
 
-            self.second_asteroid.forward(2)
+                elif i%3 == 0:
+                    a.forward(4)
 
+                elif i%5 == 0:
+                    a.right(4)
 
-            self.third_asteroid.right(2)
-
-
-            self.fourth_asteroid.left(2)
-
-
+                else:
+                    a.left(4)
             self.asteroids.update()
+            #self.bullets.update()
+            '''
+            for i in self.bullet_list:
+                self.certain_hits = pygame.sprite.spritecollide(i, self.generic_astroids, True)
+                #print self.certain_hits
+                '''
+            #for i in self.asteroids:
+                #self.new_hits = pygame.sprite.spritecollide(i, self.starship_list, False)
+
+            if any(len(pygame.sprite.spritecollide(i, self.starship_list, False)) > 0 for i in self.generic_astroids):
+                #pygame.mixer.Sound.play(self.impact)
+                self.hit_counter += 1
+
+            for i in self.generic_astroids:
+                if len(pygame.sprite.spritecollide(i, self.bullet_list, False)) > 0:
+                    if i.health <= 0:
+                        i.kill()
+
+                    else:
+                        i.health -= 1
+
             self.DrawBackground()
-            self.draw_shuttle(self.height*0.8, self.width*0.45)
+            #self.draw_shuttle(self.height*0.8, self.width*0.45)
             self.asteroids.draw(self.gameDisplay)
-            self.checkcollision()
+            #self.bullets.draw(self.gameDisplay)
+            #self.checkcollision()
             self.health_bar()
             self.counterdisplay()
             if self.milliseconds > 1000:
@@ -366,4 +410,3 @@ class Games1:
 my_game = Games1()
 my_game.menu()
 
-#my_game.player()
