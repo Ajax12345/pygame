@@ -1,9 +1,8 @@
 import pygame
 import time
 import random
-
 #------------------------------------------------------------------------
-#TODO: Add health bar, game menu, background choices, and sound effects.
+#TODO: Add sound effects, advanced opponent AI.
 
 #------------------------------------------------------------------------
 class Ken(pygame.sprite.Sprite):
@@ -63,7 +62,9 @@ class StreetFighter:
         self.player.rect.x = self.width
         self.player.rect.y = self.height
         self.fighter.add(self.player)
-
+        self.ken_profile = pygame.image.load("/Users/davidpetullo/Desktop/ken_portrait.gif")
+        self.bad_guy_profile = pygame.image.load("/Users/davidpetullo/Desktop/latest.png")
+        self.logo = pygame.image.load("/Users/davidpetullo/Desktop/fighter_logo.png")
         self.x = 0
         self.y = 0
         self.time = 0
@@ -87,8 +88,8 @@ class StreetFighter:
 
         self.clock_object = pygame.time.Clock()
 
-        self.ken_healt = 500
-        self.bad_guy_health = 500
+        self.ken_healt = 450
+        self.bad_guy_health = 450
 
         self.energy_ball_time = 0
         self.energy_ball_time_flag = False
@@ -172,13 +173,61 @@ class StreetFighter:
                 self.sidekickcount = 0
 
     def draw_heath_bar(self):
-        raise NotImplementedError("We are working on it")
+        #red: (255, 0, 0)
+        #green: (0, 255, 0)
+        if self.ken_healt < 60:
+            pygame.draw.rect(self.screen, (255, 0, 0), (0, 200, self.ken_healt, 20))
+
+        else:
+            pygame.draw.rect(self.screen, (0, 255, 0), (0, 200, self.ken_healt, 20))
+
+        if self.bad_guy_health < 60:
+            pygame.draw.rect(self.screen, (255, 0, 0), (500+(500-self.bad_guy_health), 200, self.bad_guy_health, 20))
+
+        else:
+            pygame.draw.rect(self.screen, (0, 255, 0), (500+(500-self.bad_guy_health), 200, self.bad_guy_health, 20))
+
+
+
+
+
 
     def check_collision(self):
         if any(len(pygame.sprite.spritecollide(i, self.enemies, False)) > 0 for i in self.balls):
-            self.bad_guy_health -= 400
+            self.bad_guy_health -= 5
 
-            print "hit"
+
+
+        if len(pygame.sprite.groupcollide(self.enemies, self.fighter, 0, 0)) > 0:
+
+
+            self.flag_listing1 = [self.punch, self.kick, self.flyingkick, self.backkick, self.uppercut]
+
+            self.flag_listing2 = [self.enemy_side_kick, self.enemyfrontkick]
+
+            if self.punch:
+                self.bad_guy_health -= 0.05
+
+            if self.backkick:
+                self.bad_guy_health -= 0.1
+
+            if self.flyingkick:
+                self.bad_guy_health -= 0.1
+
+            if self.kick:
+                self.bad_guy_health -= 1
+
+            if self.uppercut:
+                self.bad_guy_health -= 0.06
+
+            if self.enemy_side_kick:
+                self.ken_healt -= 0.6
+
+            if self.enemyfrontkick:
+                self.ken_healt -= 0.5
+
+
+
 
     def energy_ball_time_incremement(self):
 
@@ -201,6 +250,7 @@ class StreetFighter:
         self.screen.fill((255, 255, 255))
 
         pygame.display.set_caption("Street Fighter 5")
+
 
         while self.alive:
 
@@ -241,7 +291,7 @@ class StreetFighter:
                             self.energy_ball_count -= 1
 
                         else:
-                            
+
 
                             self.energy_ball_time_flag = True
 
@@ -294,6 +344,10 @@ class StreetFighter:
 
             self.screen.fill((255, 255, 255))
             self.screen.blit(self.img3, (0, 0))
+            self.screen.blit(self.logo, (420, 10))
+            self.draw_heath_bar()
+            self.screen.blit(self.ken_profile, (50, 30))
+            self.screen.blit(self.bad_guy_profile, (650, 0))
             self.player.rect.x = self.height
             self.player.rect.y = self.width
 
@@ -369,6 +423,8 @@ class StreetFighter:
 
 
             self.update_screen()
+
+
 
 
 
