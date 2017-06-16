@@ -172,6 +172,8 @@ class StreetFighter:
 
                 self.sidekickcount = 0
 
+
+
     def draw_heath_bar(self):
         #red: (255, 0, 0)
         #green: (0, 255, 0)
@@ -212,6 +214,9 @@ class StreetFighter:
                 self.bad_guy_health -= 0.1
 
             if self.flyingkick:
+                font = pygame.font.SysFont(None, 200)
+                text = font.render("Big Hit!", True, (0, 0, 0))
+                self.screen.blit(text, (300, 300))
                 self.bad_guy_health -= 0.1
 
             if self.kick:
