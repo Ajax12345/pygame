@@ -1,6 +1,8 @@
 import pygame
 import random
 import collections
+import time
+import sys
 converter = {"tercoise":(0,238,238), 'yellow':(255,215,0), 'purple':(191,62,255), 'green':(127,255,0), 'red':(255,0,0), 'blue':(0, 0, 255), 'brown':(255,127,36)}
 
 class Block(pygame.sprite.Sprite):
@@ -119,6 +121,7 @@ class MainGame:
         self.final_blocks = pygame.sprite.Group()
         self.flag = False
         self.prioraty = collections.deque()
+        self.current_time = time.time()
     def play(self):
         pygame.init()
         self.screen.fill((255, 255, 255))
@@ -168,8 +171,11 @@ class MainGame:
                 if sprite.rect.y >= 700 or any(pygame.sprite.collide_rect(i, sprite2) for sprite2 in self.final_blocks for i in self.current_block):
                     for sprite in self.current_block:
                         self.final_blocks.add(sprite)
-                    self.current_block = self.prioraty.popleft()
-
+                    try:
+                        self.current_block = self.prioraty.popleft()
+                    except IndexError:
+                        print "Congrats! Game time was {} minutes".format(round(abs(self.current_time-time.time())/60))
+                        sys.exit()
 
                     break
 
