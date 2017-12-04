@@ -174,7 +174,7 @@ class MainGame:
                     try:
                         self.current_block = self.prioraty.popleft()
                     except IndexError:
-                        print "Congrats! Game time was {} minutes".format(round(abs(self.current_time-time.time())/60))
+                        print "Congradulations! Game time was {} minutes".format(round(abs(self.current_time-time.time())/60, 2))
                         sys.exit()
 
                     break
